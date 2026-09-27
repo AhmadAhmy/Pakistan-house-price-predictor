@@ -516,7 +516,7 @@ body {
             async function calculatePrice() {
     calcSpinner.classList.remove('hidden');
 
-    // 1. Data payload build karein jo aapki app.py (HouseInput Pydantic model) ko chahiye
+     
     const payload = {
         city: citySelect.value,
         location: locationSelect.value || "",
@@ -527,7 +527,7 @@ body {
     };
 
     try {
-        // 2. FastAPI backend ko API request bhejein (Relative Path '/predict')
+        // 2. FastAPI backend  
         const response = await fetch('/predict', {
             method: 'POST',
             headers: {
@@ -542,7 +542,7 @@ body {
             throw new Error(result.detail || "API Error Occurred");
         }
 
-        // 3. App.py se aane wali 'predicted_price_pkr' value receive karein
+        // 3. 'predicted_price_pkr' value received from app.py
         const totalVal = result.predicted_price_pkr;
 
         // Price formatting function (Crores / Lacs)
@@ -558,7 +558,7 @@ body {
 
         const ratePerMarlaVal = totalVal / payload.area_marla;
 
-        // 4. UI Display Update Karein
+        // 4. UI Display Update 
         formattedPKRDisplay.textContent = formatPKR(totalVal);
         exactNumberDisplay.textContent = `(Rs. ${Math.round(totalVal).toLocaleString('en-PK')})`;
         ratePerMarla.textContent = formatPKR(ratePerMarlaVal);
