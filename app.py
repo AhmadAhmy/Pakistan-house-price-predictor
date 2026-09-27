@@ -1,6 +1,7 @@
+import os
+import joblib
 import numpy as np
 import pandas as pd
-import joblib
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -15,12 +16,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+ 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, 'model.pkl')
+ENCODERS_PATH = os.path.join(BASE_DIR, 'encoders.pkl')
+
+ 
 try:
-    model = joblib.load('model.pkl')
-    encoders = joblib.load('encoders.pkl')
+    model = joblib.load(MODEL_PATH)
+    encoders = joblib.load(ENCODERS_PATH)
     print("Model and encoders loaded successfully")
 except Exception as e:
-    print(f"Error loading model or encoders: {e}")
+    print(f"Critical Error loading model files: {e}")
+     
+    model = None
+    encoders = {}
 
 class HouseInput(BaseModel):
     city: str
@@ -36,6 +46,8 @@ def read_root():
 
 @app.get("/options")
 def get_options():
+    if not encoders:
+        raise HTTPException(status_code=500, detail="Encoders file load nahi ho saki.")
     try:
         options = {}
         for col, encoder in encoders.items():
@@ -46,6 +58,9 @@ def get_options():
 
 @app.post("/predict")
 def predict_price(data: HouseInput):
+    if not model or not encoders:
+        raise HTTPException(status_code=500, detail="Model ya Encoders backend par loaded nahi hain.")
+        
     try:
         input_data = {
             "city": data.city,
@@ -55,7 +70,6 @@ def predict_price(data: HouseInput):
             "baths": data.baths,
             "area_marla": data.area_marla
         }
-        
         
         for col in ['city', 'location', 'property_type']:
             encoder = encoders[col]
@@ -70,8 +84,6 @@ def predict_price(data: HouseInput):
                 )
 
         df_input = pd.DataFrame([input_data])
-        
-         
         prediction = model.predict(df_input)[0]
         
         return {
