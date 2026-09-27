@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pakistan House Price Predictor (6 Features)</title>
+    <!-- Tailwind CSS for utility layout -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        pakistan: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#16a34a',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#022c22',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style id="embedded-css">
+        /* Custom Styles for Pakistan Real Estate Predictor */
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #030712;
+            color: #f9fafb;
+        }
+
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.8);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .input-glow {
+            transition: all 0.2s ease-in-out;
+            background-color: #111827;
+            border-color: #1f2937;
+            color: #ffffff;
+        }
+
+        .input-glow:focus {
+            border-color: #059669;
+            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.25);
+            outline: none;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(31, 41, 55, 0.5);
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #059669;
+            border-radius: 4px;
+        }
+
+        .tab-btn.active {
+            background-color: #059669;
+            color: #ffffff;
+            border-color: #10b981;
+        }
+
+        @keyframes floatGlow {
+            0%, 100% { transform: translateY(0px) scale(1); opacity: 0.35; }
+            50% { transform: translateY(-15px) scale(1.05); opacity: 0.55; }
+        }
+        .ambient-glow {
+            animation: floatGlow 6s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-950 text-gray-100 flex flex-col justify-between relative overflow-x-hidden">
+
+    <!-- Background Ambient Glow -->
+    <div class="fixed top-0 left-1/4 w-[500px] h-[500px] bg-emerald-600/15 rounded-full blur-[120px] pointer-events-none ambient-glow"></div>
+    <div class="fixed bottom-0 right-1/4 w-[500px] h-[500px] bg-teal-600/15 rounded-full blur-[120px] pointer-events-none ambient-glow" style="animation-delay: 3s;"></div>
+
+    <header class="border-b border-gray-800/80 bg-gray-900/80 backdrop-blur-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20 shadow-inner">
+                    <i data-lucide="home" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+                        PakProperty AI <span class="text-[10px] uppercase font-semibold tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">6-Feature Predictor</span>
+                    </h1>
+                    <p class="text-xs text-gray-400">Valuation System for Lahore, Karachi, Islamabad, Rawalpindi & Faisalabad</p>
+                </div>
+            </div>
+
+            <!-- View Switcher Tabs -->
+           <!-- < class="flex items-center bg-gray-900 border border-gray-800 p-1 rounded-xl text-xs"> -->
+                <button id="showPredictorBtn" class="tab-btn active px-3.5 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5">
+                    <i data-lucide="calculator" class="w-3.5 h-3.5"></i> Predictor
+                </button>
+               <!-- <button id="showCodeBtn" class="tab-btn px-3.5 py-1.5 rounded-lg text-gray-400 hover:text-white transition flex items-center gap-1.5">
+                    <i data-lucide="code-2" class="w-3.5 h-3.5"></i> Export HTML & CSS Code
+                </button>-->
+            </div>
+        </div>
+    </header>
+
+    <main id="predictorView" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-grow">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+            <!-- LEFT SECTION: 6-FEATURE INPUT FORM (7 Cols) -->
+            <section class="lg:col-span-7 glass-panel rounded-2xl p-5 sm:p-7 shadow-2xl relative">
+                <div class="border-b border-gray-800 pb-4 mb-6 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                            <i data-lucide="sliders" class="w-5 h-5 text-emerald-400"></i> Property Inputs
+                        </h2>
+                        <p class="text-xs text-gray-400 mt-0.5">Please provide the 6 features below to predict price</p>
+                    </div>
+                    <button id="resetFormBtn" type="button" class="text-xs text-gray-400 hover:text-white px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 transition border border-gray-700 flex items-center gap-1">
+                        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reset Inputs
+                    </button>
+                </div>
+
+                <form id="houseForm" class="space-y-5">
+                    
+                    <!-- FEATURE 1: CITY DROPDOWN -->
+                    <div>
+                        <label for="citySelect" class="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
+                            1. City <span class="text-emerald-400">*</span>
+                        </label>
+                        <div class="relative">
+                            <i data-lucide="building" class="w-4 h-4 absolute left-3.5 top-3.5 text-gray-400 pointer-events-none"></i>
+                            <select id="citySelect" class="w-full text-sm rounded-xl py-3 pl-10 pr-4 input-glow appearance-none cursor-pointer">
+                                <option value="Lahore" selected>Lahore</option>
+                                <option value="Karachi">Karachi</option>
+                                <option value="Islamabad">Islamabad</option>
+                                <option value="Rawalpindi">Rawalpindi</option>
+                                <option value="Faisalabad">Faisalabad</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- FEATURE 2: LOCATION DROPDOWN (DYNAMIC ACCORDING TO CITY) -->
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label for="locationSelect" class="text-xs font-semibold text-gray-300 uppercase tracking-wider">
+                                2. Location <span class="text-emerald-400">*</span>
+                            </label>
+                            <span id="locCountBadge" class="text-[11px] text-emerald-400 font-medium bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                                0 locations
+                            </span>
+                        </div>
+                        <div class="relative">
+                            <i data-lucide="map-pin" class="w-4 h-4 absolute left-3.5 top-3.5 text-gray-400 pointer-events-none"></i>
+                            <select id="locationSelect" class="w-full text-sm rounded-xl py-3 pl-10 pr-4 input-glow appearance-none cursor-pointer custom-scrollbar">
+                                <!-- Dynamic options populated via JS -->
+                            </select>
+                        </div>
+                        <p class="text-[11px] text-gray-400 mt-1">Shows only specific locations belonging to the selected city.</p>
+                    </div>
+
+                    <!-- FEATURE 3 & 4: BEDROOMS & BATHROOMS (DROPDOWNS 1 TO 10) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <!-- FEATURE 3: BEDROOMS -->
+                        <div>
+                            <label for="bedroomsSelect" class="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
+                                3. Bedrooms <span class="text-emerald-400">*</span>
+                            </label>
+                            <div class="relative">
+                                <i data-lucide="bed" class="w-4 h-4 absolute left-3.5 top-3.5 text-gray-400 pointer-events-none"></i>
+                                <select id="bedroomsSelect" class="w-full text-sm rounded-xl py-3 pl-10 pr-4 input-glow appearance-none cursor-pointer">
+                                    <option value="1">1 Bedroom</option>
+                                    <option value="2">2 Bedrooms</option>
+                                    <option value="3" selected>3 Bedrooms</option>
+                                    <option value="4">4 Bedrooms</option>
+                                    <option value="5">5 Bedrooms</option>
+                                    <option value="6">6 Bedrooms</option>
+                                    <option value="7">7 Bedrooms</option>
+                                    <option value="8">8 Bedrooms</option>
+                                    <option value="9">9 Bedrooms</option>
+                                    <option value="10">10 Bedrooms</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- FEATURE 4: BATHROOMS -->
+                        <div>
+                            <label for="bathroomsSelect" class="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
+                                4. Bathrooms <span class="text-emerald-400">*</span>
+                            </label>
+                            <div class="relative">
+                                <i data-lucide="bath" class="w-4 h-4 absolute left-3.5 top-3.5 text-gray-400 pointer-events-none"></i>
+                                <select id="bathroomsSelect" class="w-full text-sm rounded-xl py-3 pl-10 pr-4 input-glow appearance-none cursor-pointer">
+                                    <option value="1">1 Bathroom</option>
+                                    <option value="2">2 Bathrooms</option>
+                                    <option value="3" selected>3 Bathrooms</option>
+                                    <option value="4">4 Bathrooms</option>
+                                    <option value="5">5 Bathrooms</option>
+                                    <option value="6">6 Bathrooms</option>
+                                    <option value="7">7 Bathrooms</option>
+                                    <option value="8">8 Bathrooms</option>
+                                    <option value="9">9 Bathrooms</option>
+                                    <option value="10">10 Bathrooms</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FEATURE 5 & 6: AREA (MARLA) & PROPERTY TYPE -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <!-- FEATURE 5: AREA (MARLA) -->
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <label for="areaMarla" class="text-xs font-semibold text-gray-300 uppercase tracking-wider">
+                                    5. Area (in Marla) <span class="text-emerald-400">*</span>
+                                </label>
+                                <span id="kanalEquivalent" class="text-[11px] text-emerald-400 font-medium">0.5 Kanal</span>
+                            </div>
+                            <div class="relative">
+                                <i data-lucide="ruler" class="w-4 h-4 absolute left-3.5 top-3.5 text-gray-400 pointer-events-none"></i>
+                                <input type="number" id="areaMarla" step="0.1" min="0.1" value="10" required
+                                       class="w-full text-sm rounded-xl py-3 pl-10 pr-4 input-glow" placeholder="e.g. 2.5, 5, 10, 20, 40">
+                            </div>
+                        </div>
+
+                        <!-- FEATURE 6: PROPERTY TYPE -->
+                        <div>
+                            <label for="propertyTypeSelect" class="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
+                                6. Property Type <span class="text-emerald-400">*</span>
+                            </label>
+                            <div class="relative">
+                                <i data-lucide="home" class="w-4 h-4 absolute left-3.5 top-3.5 text-gray-400 pointer-events-none"></i>
+                                <select id="propertyTypeSelect" class="w-full text-sm rounded-xl py-3 pl-10 pr-4 input-glow appearance-none cursor-pointer">
+                                    <option value="House" selected>House</option>
+                                    <option value="Flat">Flat</option>
+                                    <option value="Lower Portion">Lower Portion</option>
+                                    <option value="Upper Portion">Upper Portion</option>
+                                    <option value="Penthouse">Penthouse</option>
+                                    <option value="Farm House">Farm House</option>
+                                    <option value="Room">Room</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PREDICT BUTTON -->
+                    <button type="submit" id="calculatePriceBtn" class="w-full mt-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg shadow-emerald-900/40 transition transform active:scale-[0.99] flex justify-center items-center gap-2">
+                        <i data-lucide="calculator" class="w-5 h-5"></i>
+                        <span>Predict Estimated Price</span>
+                    </button>
+                </form>
+            </section>
+
+            <section class="lg:col-span-5 space-y-6">
+                <!-- Result Display Card -->
+                <div class="glass-panel rounded-2xl p-6 shadow-2xl relative border-emerald-500/30 overflow-hidden">
+                    <div id="calcSpinner" class="hidden absolute inset-0 bg-gray-950/85 backdrop-blur-sm z-20 flex flex-col justify-center items-center">
+                        <div class="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+                        <p class="text-xs text-gray-300 font-medium">Predicting Valuation in PKR...</p>
+                    </div>
+
+                    <div class="flex items-center justify-between pb-4 border-b border-gray-800">
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                            Predicted Market Price
+                        </span>
+                        <span id="selectedCityBadge" class="text-xs font-semibold text-gray-300 bg-gray-800/90 px-2.5 py-1 rounded-full border border-gray-700">Lahore</span>
+                    </div>
+
+                    <!-- Main Price Display -->
+                    <div class="my-6 text-center">
+                        <p class="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-1">Estimated Valuation (PKR)</p>
+                        <h3 id="formattedPKRDisplay" class="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-green-300 py-1">
+                            PKR 3.50 Crore
+                        </h3>
+                        <p id="exactNumberDisplay" class="text-xs text-gray-400 mt-1 font-mono">
+                            (Rs. 35,000,000)
+                        </p>
+                    </div>
+
+                    <!-- Property Summary Grid -->
+                    <div class="grid grid-cols-2 gap-3 pt-2">
+                        <div class="bg-gray-900/80 p-3 rounded-xl border border-gray-800">
+                            <span class="text-[11px] text-gray-400 block">Rate / Marla</span>
+                            <span id="ratePerMarla" class="text-sm font-bold text-gray-200">PKR 35.0 Lacs</span>
+                        </div>
+                        <div class="bg-gray-900/80 p-3 rounded-xl border border-gray-800">
+                            <span class="text-[11px] text-gray-400 block">Property Type</span>
+                            <span id="propertyTypeDisplay" class="text-sm font-bold text-gray-200">House</span>
+                        </div>
+                    </div>
+
+                    <!-- Details -->
+                    <div class="mt-5 pt-4 border-t border-gray-800 space-y-2.5 text-xs">
+                        <div class="flex justify-between items-center text-gray-300">
+                            <span class="text-gray-400">Selected Location:</span>
+                            <span id="selectedLocDisplay" class="font-medium text-emerald-400 truncate max-w-[200px]">Bahria Town</span>
+                        </div>
+                        <div class="flex justify-between items-center text-gray-300">
+                            <span class="text-gray-400">Rooms:</span>
+                            <span id="roomsDisplay" class="font-medium text-gray-200">3 Beds | 3 Baths</span>
+                        </div>
+                    </div>
+
+                    <!-- Copy Summary Button -->
+                    <div class="mt-6">
+                        <button id="copySummaryBtn" type="button" class="w-full text-xs text-gray-300 hover:text-white bg-gray-800 hover:bg-gray-700/80 border border-gray-700 py-2.5 rounded-xl transition flex items-center justify-center gap-2">
+                            <i data-lucide="copy" class="w-4 h-4"></i> Copy Summary
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <main id="codeView" class="hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-grow">
+        <div class="glass-panel rounded-2xl p-6 shadow-2xl">
+            <div class="flex flex-wrap justify-between items-center pb-4 border-b border-gray-800 gap-4 mb-4">
+                <div>
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i data-lucide="code" class="w-5 h-5 text-emerald-400"></i> Code Export
+                    </h2>
+                    <p class="text-xs text-gray-400">Copy standalone HTML or CSS files</p>
+                </div>
+                <div class="flex gap-2">
+                    <button id="subHtmlTab" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-medium border border-emerald-500">
+                        index.html
+                    </button>
+                    <button id="subCssTab" class="px-3 py-1.5 rounded-lg bg-gray-800 text-gray-400 hover:text-white text-xs font-medium border border-gray-700">
+                        style.css
+                    </button>
+                </div>
+            </div>
+
+            <!-- HTML Block -->
+            <div id="htmlCodeContainer" class="relative">
+                <button id="copyHtmlCodeBtn" class="absolute top-3 right-3 bg-gray-800 hover:bg-gray-700 text-xs text-gray-200 px-3 py-1.5 rounded-lg border border-gray-700 flex items-center gap-1.5 z-10">
+                    <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy HTML
+                </button>
+                <pre class="bg-gray-950 p-4 rounded-xl border border-gray-800 text-xs text-emerald-300 font-mono overflow-x-auto max-h-[500px] custom-scrollbar"><code id="rawHtmlText"></code></pre>
+            </div>
+
+            <!-- CSS Block -->
+            <div id="cssCodeContainer" class="hidden relative">
+                <button id="copyCssCodeBtn" class="absolute top-3 right-3 bg-gray-800 hover:bg-gray-700 text-xs text-gray-200 px-3 py-1.5 rounded-lg border border-gray-700 flex items-center gap-1.5 z-10">
+                    <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy CSS
+                </button>
+                <pre class="bg-gray-950 p-4 rounded-xl border border-gray-800 text-xs text-teal-300 font-mono overflow-x-auto max-h-[500px] custom-scrollbar"><code id="rawCssText">
+/* style.css - Pakistan House Price Predictor */
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: #030712;
+    color: #f9fafb;
+}
+
+.glass-panel {
+    background: rgba(17, 24, 39, 0.8);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.input-glow {
+    transition: all 0.2s ease-in-out;
+    background-color: #111827;
+    border-color: #1f2937;
+    color: #ffffff;
+}
+
+.input-glow:focus {
+    border-color: #059669;
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.25);
+    outline: none;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(31, 41, 55, 0.5);
+    border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #059669;
+    border-radius: 4px;
+}
+                </code></pre>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-800/80 bg-gray-950 py-4 text-center text-xs text-gray-500">
+        <p>© 2026 PakProperty AI Engine - 6-Feature Prediction</p>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-emerald-600 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 text-xs transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none z-50">
+        <i data-lucide="check-circle" class="w-4 h-4"></i>
+        <span id="toastMessage">Summary copied!</span>
+    </div>
+
+    <script>
+        // Exact Location Arrays Provided for 5 Cities
+        const CITY_LOCATIONS = {
+            Lahore: [
+                "AR Cottages", "AWT Army Welfare Trust", "Aabpara Coop Housing Society", "Aashiana Road", "Abdali Road", "Abdalians Cooperative Housing Society", "Abdul Sattar Edhi Road", "Abdullah Town", "Abid Market", "Abid Road", "Abu Alkhair Road", "Acro Green - Bankers Avenue", "Adan Villas", "Afzal Park", "Agrics Town", "Ahmad Avenue", "Ahmad Housing Scheme", "Air Avenue", "Air Line Housing Society", "Airport Road", "Aitbar Town", "Akbari Mandi", "Akram Park", "Al Ghani Garden", "Al Hamra Town", "Al Jannat Housing Scheme", "Al Madina Town", "Al Noor Park Housing Society", "Al Raheem Garden", "Al Rahim Town", "Al Rehman Garden", "Al-Faisal Town", "Al-Hadi Town", "Al-Hamd Park", "Al-Haram Garden", "Al-Janat Avenue", "Al-Jannat Housing Society", "Al-Kabir Town", "Al-Makkah City", "Al-Raziq Garden", "Al-Raziq Town", "Al-Rehman Town", "Al-Riaz Town", "Ali Alam Garden", "Ali Town", "Allama Iqbal Town", "Almas Town", "Altaf Park", "Ameer-ud-Din Park", "Amin Park", "Amir Town", "Amna Park", "Anarkali", "Anisabad", "Architecture Employees Cooperative Housing Society", "Arfat Town", "Arib Garden", "Arjan Garh", "Arif Town", "Asif Town", "Askari", "Aslam Town", "Assets Garden", "Ashraf Town", "Askari Bypass", "Atari Saroba", "Awan Town", "Awaisia Housing Society", "Avenue 1", "Ayubia Market", "Azadi Chowk", "Azam Cloth Market", "Azam Garden", "Azam Town", "Azhar Town", "Aziz Bhatti Town", "Bilal Ganj", "Bilal Park", "Bilal Town", "Babar Town", "Babu Sabu", "Badami Bagh", "Badian Road", "Badshahi Mosque Road", "Baghbanpura", "Bahria Nasheman", "Bahria Orchard", "Bahria Town", "Bankers Avenue Cooperative Housing Society", "Bankers Co-operative Housing Society", "Bankers Town", "Barkat Town", "Barki Road", "Basin Park", "Batapur", "Beacon House Society", "Bedian Road", "Bedian Town", "Begum Kot", "Begum Road", "Bhikki", "Bholay Shah", "Bhoptian", "Bhutta Chowk", "Brandreth Road", "Broadways Commercial", "Canal Bank Housing Scheme", "Canal Bank Road", "Canal Breeze", "Canal Fort", "Canal Garden", "Canal View", "Canal View Society", "Canal Berg", "Cantt", "Cantt View Society", "Cavalry Ground", "Audit & Accounts Housing Society", "Chah Miran", "Chanan Din Park", "Charrar Drainage Colony", "Chaudhry Colony", "China Scheme", "Chishtia Park", "Chohan Road", "Chung", "Church Road", "Circular Road", "Climax Town", "College Road", "Cooperative Housing Society", "Coping Scheme", "Country Homes", "Crown Park", "Custom Garden", "Customized Housing Society", "Custom Society", "DHA Defence", "DHA Phase 1", "DHA Phase 2", "DHA Phase 3", "DHA Phase 4", "DHA Phase 5", "DHA Phase 6", "DHA Phase 7", "DHA Phase 8", "DHA Phase 9", "DHA Phase 10", "DHA Rahbar", "Data Ganj Bakhsh Town", "Defence Road", "Dev Samaj Road", "Divine Gardens", "Drainage Colony", "Jubilee Town", "Doctor Hospital", "Doctors Housing Society", "Dream Gardens", "Eden", "Eden Avenue", "Eden City", "Eden Gardens", "Eden Park", "Eden Value Homes", "Educated Town", "Education Town", "EME Society", "Empress Road", "Engineers Town", "Executive Cottages", "Ferozepur Road", "Factory Area", "Faisal Town", "Fazaia Housing Scheme", "Federal Colony", "Ferozepur City", "Fort Villas", "Fortress Stadium", "Freight Colony", "Gajjumata", "GPO", "GT Road", "Garden Town", "Garhi Shahu", "Gazdarabad", "General Bus Stand", "Ghaziabad", "Ghousia Town", "Green Avenue", "Green Cap Housing Society", "Green Fort", "Green Park", "Green Town", "Gulberg", "Gulberg 1", "Gulberg 2", "Gulberg 3", "Gulberg 4", "Gulberg 5", "Gulshan-e-Ahsan", "Gulshan-e-Iqbal", "Gulshan-e-Javiad", "Gulshan-e-Lahore", "Gulshan-e-Ravi", "Gulshan-e-Shalimar", "Gulshan-e-Yaseen", "Gulshan-a-Mustafa", "Gurumangat Road", "Habib Park", "Hadaitabad", "Hafiz Town", "Haider Road", "Hall Road", "Hameed Park", "Hameedpura", "Hamza Town", "Handu Village", "Harbanspura", "Green Town Sector 1", "Highcourt Society", "Hill View Society", "Housing Academy", "Hunza Block", "Ichhra", "Ihsan Town", "Internal Housing Society", "Iqbal Avenue", "Iqbal Park", "Iqbal Town", "Inventory Scheme", "Irfanabad", "Islampura", "Islampura Scheme", "Izmir Town", "Jallozai", "Jamil Town", "Jawad Town", "Jharra", "Johar Town", "Jallo", "Jubilee Town", "Judicial Colony", "Kacha Jail Road", "Kacha Lawrence Road", "Kacha Road", "Kahna", "Kahna Nau", "Kalar Kahar", "Kalu Khara", "Kamahan Road", "Kanganpur", "Kanso", "Kapor", "Kareem Park", "Karim Block", "Karrar", "Kasur Road", "Kot Lakhpat", "Kot Radha Kishan", "Krishan Nagar", "LDA Avenue", "LXI Town", "Lake City", "Lakshmi Chowk", "Lalik Jan Chowk", "Land Breeze", "Library Road", "Lytton Road", "MM Alam Road", "MacLeod Road", "Madina Town", "Main Market", "Main Town", "Majithia Park", "Makkah Colony", "Malipura", "Management House", "Manga Mandi", "Manawan", "Mansoora", "Marghzar Officers Colony", "Market Road", "Mason Road", "Master City", "Mayo Hospital", "Mehar Town", "Mehar Pura", "Mehmood Booti", "Meridian Town", "Metro Bus Station", "Midway City", "Millat Park", "Misri Shah", "Model Town", "Model Town Link Road", "Mohlanwal", "Momanpura", "Moon Market", "Monument Chowk", "Monument Road", "Mozang", "Mughalpura", "Multan Road", "Mumtaz City", "Mustafa Town", "Muhafiz Town", "Nabha Road", "Nabi Pura", "NAFDEC", "Nageena Town", "Namberdar Town", "Napier Road", "Nasheman-e-Iqbal", "Nasirabad", "National Town", "Naqi Market", "Nawankot", "Nazir Garden", "Naya Nazimabad", "New Anarkali", "New Garden Town", "New Khan", "New Muslim Town", "New Mozang", "New Super Town", "New Shalimar Town", "Nisbat Road", "Nishat Colony", "Nisar Colony", "Nishtar Town", "Officers Colony", "OPS Society", "OPF Housing Scheme", "Audit & Accounts", "Old Anarkali", "Old Campus", "Old Muslim Town", "Omega Residencia", "Organic Farms", "PF Society", "PIA Housing Scheme", "PAEC Foundation", "PWD Housing Scheme", "Packages Mall", "Padana", "Pajjian", "Pakistan Medical Housing Society", "Park Avenue", "Park View City", "Parc", "Passco Society", "Pensioner Town", "Phool Nagar", "Pine Villas", "PCSIR Housing Scheme", "PCSIR Society Phase 1", "PCSIR Society Phase 2", "Public Health Society", "Qadir Colony", "Qaiser Town", "Qartaba Chowk", "Qasim Park", "Qasim St", "Qazi Park", "Qazilbash Town", "Qilla Gujjar Singh", "Queen Road", "Queens Park", "Quran Academy", "R.A. Bazar", "Rachna Town", "Rahim Road", "Raiwind", "Raiwind Road", "Rajgarh", "Rajput Town", "Ramgarh", "Rang Mahal", "Rashid Road", "Rasul Park", "Ravi Road", "Ravi Town", "Rayya", "Rehman City", "Rehman Park", "Rehman Gardens", "Rehmanpura", "Riaz Town", "Ring Road", "Riwaz Garden", "Rohi Nala Road", "Roman Grove", "Royal Garden", "Royal Residencia", "S&P Society", "Sabzazar", "Sadat Town", "Sadiqabad", "Saggian", "Saggian Bypass", "Sahiwal", "Saidpur", "Sain Miran", "Sajjad Town", "Salamatpura", "Salik Town", "Samanabad", "Sami Town", "Sanda", "Sanat Nagar", "Sant Nagar", "Sarwar Road", "Shadab Colony", "Shadbagh", "Shadman", "Shadman 1", "Shadman 2", "Shah Alam Market", "Shah Jamal", "Shah Kamal", "Shahdara", "Shahdara Town", "Shahtaj Colony", "Shaheen Park", "Shalamar Town", "Shalimar Garden", "Shalimar Link Road", "Sham Nagar", "Shershah Colony", "Sheikupura Road", "Shiblee Town", "Shinwari", "Shiraz Town", "Shorkot", "Shuja Town", "Sialkot Bypass", "Signal Shop", "Silicon Valley", "Siraj Park", "State Life Society", "St Johns Park", "Sufi Town", "Sunder Industrial Estate", "Sui Gas Housing Society", "Sunfort Gardens", "Superior Services Society", "Taj Bagh", "Tajpura", "Tariq Gardens", "Tech Society", "Temple Road", "Thokar Niaz Baig", "Township", "Tariq Block", "Tubewell Station", "UET Housing Society", "University Town", "Upper Mall", "Urdu Bazar", "Valencia Housing Society", "Value Addition", "Venture", "Vertex", "Victoria Park", "Victory Town", "Viking", "Villa", "VIP Town", "WAPDA Town", "Wahdat Colony", "Wahdat Road", "Waheed Park", "Walled City", "Waris Road", "Walton Road", "Washington", "Wassanpura", "West Wood Colony", "White House", "Wind", "Yahan", "Yateem Khana", "Yousaf Town", "Zaheerabad", "Zafar Colony", "Zahra Town", "Zaman Park", "Zarar Shaheed Road", "Zeenat Block", "Zubaida Town", "Zulqarnain Park"
+            ],
+            Islamabad: [
+                "12th Avenue", "7th Avenue", "9th Avenue", "AGHOSH", "Abdullah Garden", "Agha Shahi Avenue", "Agro Farming Scheme", "Ahmed Town", "Airline Avenue", "Airport Avenue Housing Society", "Airport Enclave", "Aiza Garden", "Akbar Town", "Al Huda Town", "Al Qaim Town", "Al-Hamra Avenue", "Al-Haram City", "Al-Kausar Town", "Al-Markaz", "Al-Nafees Town", "Al-Rehman Town", "Ali Pur", "Ali Pur Farash", "Allama Iqbal Open University", "Ambassdor Enclave", "Apara", "Arslan Town", "Artemis", "Athal", "B-17", "Bahria Enclave", "Bahria Town", "Bajaur Town", "Banigala", "Bank Road", "Barakah", "Bari Imam", "Basit Town", "Behbood", "Bhara Kahu", "Blue Area", "CBR Town", "CD A Scheme", "CD A Town", "Capital Smart City", "Chatta Bakhtawar", "Chashma", "Chak Shahzad", "Chani", "Chawra", "Chohan Town", "Constitution Avenue", "D-12", "D-13", "D-14", "D-17", "DHA Defence", "DHA Defence Phase 1", "DHA Defence Phase 2", "DHA Defence Phase 3", "DHA Defence Phase 4", "DHA Defence Phase 5", "DHA Valley", "Diplomatic Enclave", "Doctor Colony", "Doctor Town", "E-11", "E-12", "E-13", "E-14", "E-16", "E-17", "E-18", "E-7", "E-8", "E-9", "Eden Life", "Educational City", "Eighteen", "F-10", "F-11", "F-15", "F-17", "F-5", "F-6", "F-7", "F-8", "FAA Foundation", "FEC", "Faisal Town", "Faith", "Farash Town", "Fateh Jang Road", "Fatehabad", "G-10", "G-11", "G-12", "G-13", "G-14", "G-15", "G-16", "G-17", "G-5", "G-6", "G-7", "G-8", "G-9", "GHORI TOWN", "GHAURI TOWN PHASE 1", "GHAURI TOWN PHASE 2", "GHAURI TOWN PHASE 3", "GHAURI TOWN PHASE 4", "GHAURI TOWN PHASE 5", "GHAURI TOWN PHASE 7", "GHAURI TOWN PHASE 8", "Gandhara City", "Garden Town", "Green Avenue", "Green Earth", "Gulberg", "Gulberg Greens", "Gulberg Residencia", "Gulshan-e-Elahi", "H-13", "H-12", "H-8", "H-9", "Headquarter", "Hill View Town", "Humak", "I-10", "I-11", "I-12", "I-13", "I-14", "I-15", "I-16", "I-8", "I-9", "Islamabad Highway", "Islamabad Model Town", "Islamia Town", "Jinnah Avenue", "Jinnah Garden", "Jinnah Town", "Judicial Town", "KRL Road", "Kahuta Road", "KALLAR SYEDAN", "KANIS", "KANIT", "Karal", "Karsaz", "Kashmir Highway", "KORAL", "Koral Town", "Korang Town", "Kuri Road", "LAWRENCE", "Lehtrar Road", "Lotus", "Madina Town", "Machine Town", "Main Margalla Road", "Malot", "Meherban Town", "Model Town", "Moto", "Motorway City", "Multi Residencia & Orchards", "Multi Gardens B-17", "National Police Foundation", "Naval Anchorage", "New Shakarparian", "OPF Housing Scheme", "PAEC Employees Housing Society", "PWD Housing Scheme", "Pakistan Town", "Park Enclave", "Park Road", "Park View City", "Peshawar Road", "Pir Sohawa", "Police Foundation", "Prime Valley", "Qutbal", "Rajgan", "Rawal Dam", "Rawal Town", "Royal Avenue", "Royal City", "Saffron", "Sain", "Salgron", "Samly Road", "Sangjani", "Saria", "Sawan Garden", "Shah Allah Ditta", "Shahpur", "Shakarparian", "Sohan Valley", "Sohan Garden", "Spring Valley", "Swan Garden", "Tarlai", "Tarnol", "Top City 1", "University Town", "Vision", "Wedge", "Zaraj Housing Scheme", "Zeeshan Colony"
+            ],
+            Karachi: [
+                "APP Employees Co-operative Housing Society", "ASF Housing Scheme", "ASF Tower", "Abdullah Ahmed Road", "Abdullah Haroon Road", "Abid Town", "Abul Hassan Isphani Road", "Ahsan Grand City", "Airport", "Aisha Manzil", "Al-Hilal Society", "Al-Jadeed Residency", "Al-Manzar Society", "Al-Safaa Garden", "Allama Iqbal Town", "Amna Avenue", "Amna City", "Anchor", "Ancholi", "Apex", "Arabic", "Askari", "Askari 1", "Askari 2", "Askari 4", "Askari 5", "Askari 10", "Askari 11", "Azam Basti", "Azizabad", "Bahadurabad", "Bahria Town Karachi", "Baluch Colony", "Band", "Buffer Zone", "Buffer Zone 1", "Buffer Zone 2", "Cantt", "CBD", "Cantt Station", "Call", "Civil Lines", "Clifton", "Clifton Block 1", "Clifton Block 2", "Clifton Block 3", "Clifton Block 4", "Clifton Block 5", "Clifton Block 7", "Clifton Block 8", "Clifton Block 9", "Country Club Apartment", "DHA Defence", "DHA Phase 1", "DHA Phase 2", "DHA Phase 4", "DHA Phase 5", "DHA Phase 6", "DHA Phase 7", "DHA Phase 8", "DHA City Karachi", "Defence View Society", "Defence Garden", "Defence Officers Housing Scheme", "District Central", "District East", "District Korangi", "District Malir", "District South", "District West", "Falcon Complex", "Fatima Jinnah Colony", "Fazaia Housing Scheme", "Federal B Area", "Garden West", "Garden East", "Gadap Town", "Gizri", "Greentree", "Gulshan-e-Iqbal", "Gulshan-e-Maymar", "Gulistan-e-Jauhar", "Gulshan-e-Hadeed", "Gulshan-e-Umair", "Gulshan-e-Azeem", "Gulshan-e-Usman", "Gulshan-e-Malir", "Guru Mandir", "Halari", "Hawke's Bay", "Horizon", "II Chundrigar Road", "Iqbal", "Jamshed Town", "Jamshed Road", "Jinnah", "KDA Scheme 1", "KDA Scheme 33", "KDA Officers Housing Society", "Korangi", "Korangi Creek", "Korangi Industrial Area", "PECHS", "PECHS Block 2", "PECHS Block 3", "PECHS Block 6", "Landhi", "Liaquatabad", "MA Jinnah Road", "Malir", "Malir Cantt", "Manzoor Colony", "Marston Road", "Mehmoodabad", "Model Colony", "Meter", "Navy", "Nazimabad", "North Nazimabad", "North Karachi", "New Karachi", "Old Clifton", "Orangi Town", "PAF Housing Scheme", "PSIC", "Pakistan Chowk", "PWD", "Port Qasim", "Prime", "Qayyumabad", "Rauf", "Rizvia Society", "SFO", "Scheme 33", "Scheme 45", "Saddar", "Saadi Town", "Safari", "Sea View", "Shaheed-e-Millat Road", "Shahra-e-Faisal", "Soldier Bazaar", "Steel Town", "Super Highway", "Surjani Town", "Tariq Road", "Tipu Sultan Road", "University Road", "West Wharf", "Wonder", "Zamzama"
+            ],
+            Rawalpindi: [
+                "Abdullah City", "Abid Majeed Road", "Adiala Road", "Affandi Colony", "Afshan Colony", "Ahmad Abad", "Air Force Housing Society", "Airport Housing Society", "Airport Road", "Akalgarh", "Al-Haram City - Phase 2", "Al-Noor Colony", "Ali Abad", "Ali Town", "Allahabad Road", "Amarpura", "Asghar Mall Scheme", "Askari", "Askari 1", "Askari 2", "Askari 7", "Askari 13", "Askari 14", "Ayub National Park", "Azhar Town", "B-17", "Bahria Town Rawalpindi", "Bahria Town Phase 1", "Bahria Town Phase 2", "Bahria Town Phase 3", "Bahria Town Phase 4", "Bahria Town Phase 5", "Bahria Town Phase 6", "Bahria Town Phase 7", "Bahria Town Phase 8", "Bahria Greens", "Bank Road", "Bankers Colony", "Barma Town", "Banni", "Bostan Khan Road", "Caltex Road", "CBR Town", "CDA Town", "Capital Smart City", "Chaklala", "Chaklala Scheme 1", "Chaklala Scheme 3", "Chaklala Scheme 2", "Chandni Chowk", "Channi", "Chour Harpal", "Chishtia Town", "Combined Town", "Commercial Market", "Customs Colony", "DHA Defence", "DHA Phase 1", "DHA Phase 2", "DHA Valley", "Dhok Paracha", "Dhok Hassu", "Dhok Mangtal", "Dhok Ratta", "Dhok Sayedan", "Dhok Ali Akbar", "Doctor Colony", "Eidgah", "Fazaia Housing Scheme", "Fazal Town", "Fountain", "Fateh Jang Road", "GHAURI TOWN", "GT Road", "Gali", "Ganjmandi", "Garrison", "Glass Factory", "Gorakhpur", "Gulberg", "Gulistan Colony", "Gulraiz Housing Scheme", "Gulshan-e-Abad", "Gulshan-e-Khudadad", "Gulshan-e-Nayab", "Harley Street", "High Court Road", "High School Road", "Hill View", "Humak", "Hyderi Chowk", "Ideal", "Islamabad Highway", "Jahangir Road", "Jamil Town", "Jinnah Road", "Judicial Colony", "KRL Road", "KTS", "Kahu", "Kalar Syedan", "KALLAR SYEDAN", "Kalma Chowk", "Karian", "Karsaz", "Kashmir Highway", "Katarian", "Khayaban-e-Sir Syed", "Khokhar", "Korang Town", "Kurri Road", "Lalkurti", "Lehtrar Road", "Lotus", "Madina Town", "Main Margalla Road", "Major Road", "Mall Road", "Marble", "Marir Hasan", "Media Town", "Misrial Road", "Model Town", "Morgah", "Motorway City", "Municipal", "Muslim Town", "NAFDEC", "National Park Road", "Naval Anchorage", "New Lalazar", "OPF Housing Scheme", "Old Airport Road", "PAF Housing Scheme", "PWD Housing Scheme", "Pak Town", "Pakistan Town", "Peshawar Road", "Pir Wadhai", "Police Colony", "Prime", "Qasim Market", "Quaid-e-Azam Colony", "R.A. Bazar", "Race Course", "Radio Pakistan", "Rahmanabad", "Range Road", "Rawat", "Sadiqabad", "Saddar", "Saidpur Road", "Satellite Town", "Sawan Garden", "Scheme 3", "Shah Khalid Colony", "Shakrial", "Shamsabad", "Sohan", "Swan Garden", "Taj Residencia", "Tarlai", "Tench Bhatta", "Tipu Road", "Top City 1", "University Town", "Valuation", "Vehicle", "VIP", "WAPDA Town", "Westridge", "Westridge 1", "Westridge 2", "Westridge 3", "Willow", "Zaraj Housing Scheme", "Zeeshan Colony"
+            ],
+            Faisalabad: [
+                "204 Chak Road", "Abbaspur", "Abdullah City", "Abdullahpur", "Afghanabad", "Ahmadabad", "Air Avenue City", "Akbar Chowk", "Akbar Colony", "Al Barkat Villas", "Al Fayaz Colony", "Al Jameel Housing Scheme", "Al Masoom Town", "Al Najaf Colony", "Al Noor Garden", "Ali Town", "Amin Town", "Anandpura", "Anarkali", "Arfat Town", "Architecture Society", "Ashrafabad", "Ayub Agricultural Research Institute", "Azhar Town", "Aziz Bhatti Town", "Batala Colony", "Bawa Chak", "Bazaar", "Bhai Wala", "Bilal Road", "Canal Expressway", "Canal Garden", "Canal Road", "Canal Valley", "Centaurus", "Central", "Civil Lines", "College Road", "Custom Town", "FDA City", "Factory Area", "Faisal Gardens", "Faisal Town", "Fazaia Housing Scheme", "Firdous Colony", "GTM", "Garden Town", "Gatwala", "Ghulam Muhammad Abad", "Gobind Pura", "Green Town", "Gulberg", "Gulberg Colony", "Gulistan Colony", "Gulshan-e-Iqbal", "Gulshan-e-Meher", "Gulshan-e-Rafiq", "Guru Nanak Pura", "Hajweri Town", "Hassan Town", "Horizon", "Ice Factory", "Ideal Town", "Iqbal Stadium", "Iron Market", "Islamia Park", "Ismail City", "Jamil Town", "Jhang Road", "Jinnah Colony", "Jinnah Town", "Judicial Housing Society", "Karkhana Bazaar", "Kehkashan Colony", "Khayaban-e-Green", "Khayaban-e-Iqbal", "Khurrianwala", "Kohinoor City", "Karkhana", "Kokianwala", "Kotwali Road", "KSK", "Lalamusa", "Lathianwala", "Liaquatabad", "Madina Town", "Mai Di Jhugi", "Malikpur", "Mansoorabad", "Marzi Pura", "Masoodabad", "Master City", "Millat Road", "Model Town", "Monument", "Motorway", "Muzaffar Colony", "Nishatabad", "Officer Colony", "Old Civil Lines", "PWD Town", "Paradise Valley", "Peoples Colony", "Peoples Colony 1", "Peoples Colony 2", "Pepper Road", "Qasimpur", "R.A. Bazar", "Rachna Town", "Rail Bazaar", "Railway Road", "Raja Town", "Raza Abad", "Riaz Shahid Colony", "Saeed Colony", "Saifabad", "Saiman", "Samanabad", "Samundri Road", "Sarfraz Colony", "Sargodha Road", "Satiana Road", "Sethi Colony", "Shafi Colony", "Shahzad Town", "Shalimar Town", "Sheikhupura Road", "Sir Syed Town", "Sitara Sapna City", "Susan Road", "Taj Colony", "Tariqabad", "Technical", "Tech Town", "University of Agriculture", "VIP", "WAPDA City", "WAPDA Town", "West Canal Road", "Yousaf Town", "Zulfiqar Colony"
+            ]
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize Lucide icons
+            lucide.createIcons();
+
+            // DOM Element References (6 features only)
+            const citySelect = document.getElementById('citySelect');
+            const locationSelect = document.getElementById('locationSelect');
+            const bedroomsSelect = document.getElementById('bedroomsSelect');
+            const bathroomsSelect = document.getElementById('bathroomsSelect');
+            const areaMarlaInput = document.getElementById('areaMarla');
+            const propertyTypeSelect = document.getElementById('propertyTypeSelect');
+
+            const locCountBadge = document.getElementById('locCountBadge');
+            const kanalEquivalent = document.getElementById('kanalEquivalent');
+            const houseForm = document.getElementById('houseForm');
+            const resetFormBtn = document.getElementById('resetFormBtn');
+            const calcSpinner = document.getElementById('calcSpinner');
+
+            // Result Display Elements
+            const formattedPKRDisplay = document.getElementById('formattedPKRDisplay');
+            const exactNumberDisplay = document.getElementById('exactNumberDisplay');
+            const ratePerMarla = document.getElementById('ratePerMarla');
+            const selectedCityBadge = document.getElementById('selectedCityBadge');
+            const selectedLocDisplay = document.getElementById('selectedLocDisplay');
+            const propertyTypeDisplay = document.getElementById('propertyTypeDisplay');
+            const roomsDisplay = document.getElementById('roomsDisplay');
+
+            // View toggle elements
+            const showPredictorBtn = document.getElementById('showPredictorBtn');
+            const showCodeBtn = document.getElementById('showCodeBtn');
+            const predictorView = document.getElementById('predictorView');
+            const codeView = document.getElementById('codeView');
+            const subHtmlTab = document.getElementById('subHtmlTab');
+            const subCssTab = document.getElementById('subCssTab');
+            const htmlCodeContainer = document.getElementById('htmlCodeContainer');
+            const cssCodeContainer = document.getElementById('cssCodeContainer');
+
+            // Populate HTML raw code viewer
+           // document.getElementById('rawHtmlText').textContent = document.documentElement.outerHTML;
+
+            // --- POPULATE DYNAMIC LOCATION DROPDOWN ---
+            function updateLocationOptions() {
+                const selectedCity = citySelect.value;
+                const locations = CITY_LOCATIONS[selectedCity] || [];
+                
+                locationSelect.innerHTML = "";
+                
+                locations.forEach((loc) => {
+                    const opt = document.createElement('option');
+                    opt.value = loc;
+                    opt.textContent = loc;
+                    locationSelect.appendChild(opt);
+                });
+
+                locCountBadge.textContent = `${locations.length} locations`;
+                selectedCityBadge.textContent = selectedCity;
+            }
+
+            // City dropdown change event
+            citySelect.addEventListener('change', () => {
+                updateLocationOptions();
+                calculatePrice();
+            });
+
+            // Area Marla change event
+            areaMarlaInput.addEventListener('input', () => {
+                const marlas = parseFloat(areaMarlaInput.value) || 0;
+                const kanals = (marlas / 20).toFixed(2);
+                kanalEquivalent.textContent = `${kanals} Kanal`;
+                calculatePrice();
+            });
+
+            // Feature event listeners
+            [locationSelect, bedroomsSelect, bathroomsSelect, propertyTypeSelect].forEach(elem => {
+                elem.addEventListener('change', calculatePrice);
+            });
+
+            // --- PKR VALUATION FORMULA ---
+            async function calculatePrice() {
+    calcSpinner.classList.remove('hidden');
+
+    // 1. Data payload build karein jo aapki app.py (HouseInput Pydantic model) ko chahiye
+    const payload = {
+        city: citySelect.value,
+        location: locationSelect.value || "",
+        property_type: propertyTypeSelect.value,
+        bedrooms: parseInt(bedroomsSelect.value) || 3,
+        baths: parseInt(bathroomsSelect.value) || 3,
+        area_marla: parseFloat(areaMarlaInput.value) || 10
+    };
+
+    try {
+        // 2. FastAPI backend ko API request bhejein (Relative Path '/predict')
+        const response = await fetch('/predict', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.detail || "API Error Occurred");
+        }
+
+        // 3. App.py se aane wali 'predicted_price_pkr' value receive karein
+        const totalVal = result.predicted_price_pkr;
+
+        // Price formatting function (Crores / Lacs)
+        function formatPKR(val) {
+            if (val >= 10000000) {
+                const crores = (val / 10000000).toFixed(2);
+                return `PKR ${crores} Crore`;
+            } else {
+                const lacs = (val / 100000).toFixed(2);
+                return `PKR ${lacs} Lacs`;
+            }
+        }
+
+        const ratePerMarlaVal = totalVal / payload.area_marla;
+
+        // 4. UI Display Update Karein
+        formattedPKRDisplay.textContent = formatPKR(totalVal);
+        exactNumberDisplay.textContent = `(Rs. ${Math.round(totalVal).toLocaleString('en-PK')})`;
+        ratePerMarla.textContent = formatPKR(ratePerMarlaVal);
+        selectedLocDisplay.textContent = payload.location || "N/A";
+        propertyTypeDisplay.textContent = payload.property_type;
+        roomsDisplay.textContent = `\({payload.bedrooms} Beds |\){payload.baths} Baths`;
+
+    } catch (error) {
+        console.error("Prediction Error:", error);
+        formattedPKRDisplay.textContent = "Error";
+        exactNumberDisplay.textContent = `(${error.message})`;
+    } finally {
+        calcSpinner.classList.add('hidden');
+    }
+}
+
+            // Form Submit Event
+            houseForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                calculatePrice();
+            });
+
+            // Reset Button
+            resetFormBtn.addEventListener('click', () => {
+                citySelect.value = "Lahore";
+                updateLocationOptions();
+                bedroomsSelect.value = "3";
+                bathroomsSelect.value = "3";
+                areaMarlaInput.value = 10;
+                propertyTypeSelect.value = "House";
+                areaMarlaInput.dispatchEvent(new Event('input'));
+            });
+
+            // Copy Summary Button
+            document.getElementById('copySummaryBtn').addEventListener('click', () => {
+                const text = `PakProperty Valuation Summary
+-----------------------------------
+1. City: ${citySelect.value}
+2. Location: ${locationSelect.value}
+3. Bedrooms: ${bedroomsSelect.value}
+4. Bathrooms: ${bathroomsSelect.value}
+5. Area: ${areaMarlaInput.value} Marla
+6. Property Type: ${propertyTypeSelect.value}
+-----------------------------------
+Predicted Price: ${formattedPKRDisplay.textContent}
+Rate / Marla: ${ratePerMarla.textContent}
+-----------------------------------`;
+
+                copyToClipboard(text, "Valuation summary copied!");
+            });
+
+            // --- VIEW TOGGLES ---
+            showPredictorBtn.addEventListener('click', () => {
+                showPredictorBtn.classList.add('active');
+                showCodeBtn.classList.remove('active');
+                predictorView.classList.remove('hidden');
+                codeView.classList.add('hidden');
+            });
+
+            showCodeBtn.addEventListener('click', () => {
+                showCodeBtn.classList.add('active');
+                showPredictorBtn.classList.remove('active');
+                codeView.classList.remove('hidden');
+                predictorView.classList.add('hidden');
+            });
+
+            subHtmlTab.addEventListener('click', () => {
+                subHtmlTab.className = "px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-medium border border-emerald-500";
+                subCssTab.className = "px-3 py-1.5 rounded-lg bg-gray-800 text-gray-400 hover:text-white text-xs font-medium border border-gray-700";
+                htmlCodeContainer.classList.remove('hidden');
+                cssCodeContainer.classList.add('hidden');
+            });
+
+            subCssTab.addEventListener('click', () => {
+                subCssTab.className = "px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-medium border border-emerald-500";
+                subHtmlTab.className = "px-3 py-1.5 rounded-lg bg-gray-800 text-gray-400 hover:text-white text-xs font-medium border border-gray-700";
+                cssCodeContainer.classList.remove('hidden');
+                htmlCodeContainer.classList.add('hidden');
+            });
+
+            document.getElementById('copyHtmlCodeBtn').addEventListener('click', () => {
+                copyToClipboard(document.getElementById('rawHtmlText').textContent, "HTML code copied!");
+            });
+
+            document.getElementById('copyCssCodeBtn').addEventListener('click', () => {
+                copyToClipboard(document.getElementById('rawCssText').textContent, "CSS code copied!");
+            });
+
+            function copyToClipboard(content, msg) {
+                const textarea = document.createElement('textarea');
+                textarea.value = content;
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast(msg);
+                } catch(e) {}
+                document.body.removeChild(textarea);
+            }
+
+            function showToast(msg) {
+                const toast = document.getElementById('toast');
+                document.getElementById('toastMessage').textContent = msg;
+                toast.classList.remove('translate-y-20', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+                setTimeout(() => {
+                    toast.classList.remove('translate-y-0', 'opacity-100');
+                    toast.classList.add('translate-y-20', 'opacity-0');
+                }, 3000);
+            }
+
+            // Initial startup
+            updateLocationOptions();
+            calculatePrice();
+        });
+    </script>
+</body>
+</html>
